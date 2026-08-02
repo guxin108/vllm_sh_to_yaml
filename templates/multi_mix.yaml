@@ -1,0 +1,34 @@
+test_name: "{{ name }}"
+model: "{{ model }}"
+num_nodes: {{ num_nodes }}
+npu_per_node: {{ npu_per_node }}
+
+env_common: &env_common
+{% for k,v in envs.items() %}
+  {{k}}: "{{ v }}"
+{% endfor %}
+
+deployment:
+{% for i in range(num_nodes) %}
+  - envs:
+      <<: *env_common
+    server_cmd: >
+{% for line in server_cmd.split('\n') %}
+      {{ line }}
+{% endfor %}
+{% if i == 0 %}      --data-parallel-start-rank 0
+      --data-parallel-address $LOCAL_IP
+{% else %}      --data-parallel-start-rank {{i}}
+      --data-parallel-rpc-port 13389
+      --data-parallel-size-local 1
+      --headless
+      --data-parallel-address $MASTER_IP{% endif %}
+{% endfor %}
+
+benchmarks:
+{% for k,v in benchmarks.items() %}
+  {{k}}:
+{% for a,b in v.items() %}
+    {{a}}: {{b}}
+{% endfor %}
+{% endfor %}

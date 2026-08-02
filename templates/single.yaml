@@ -1,0 +1,22 @@
+test_cases:
+  - name: "{{ name }}"
+    model: "{{ model }}"
+    envs:
+{% for k,v in envs.items() %}
+      {{ k }}: "{{ v }}"
+{% endfor %}
+    server_cmd:
+{% for item in server_cmd %}
+{% if item.startswith("'{" ) %}
+      - {{ item }}
+{% else %}
+      - "{{ item }}"
+{% endif %}
+{% endfor %}
+    benchmarks:
+{% for name, bench in benchmarks.items() %}
+      {{ name }}:
+{% for k,v in bench.items() %}
+        {{ k }}: {{ '""' if v is none else v }}
+{% endfor %}
+{% endfor %}
