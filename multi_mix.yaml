@@ -1,16 +1,16 @@
 test_name: "Qwen3.5-397B-A17B-w8a8-mtp"
 model: "Eco-Tech/Qwen3.5-397B-A17B-w8a8-mtp"
 num_nodes: 2
-npu_per_node: 16
+npu_per_node: 8
 env_common: &env_common
-  SERVER_PORT: DEFAULT_PORT
-  VLLM_USE_MODELSCOPE: True
-  PYTORCH_NPU_ALLOC_CONF: expandable_segments:True
-  HCCL_OP_EXPANSION_MODE: AIV
-  HCCL_BUFFSIZE: 1024
-  OMP_NUM_THREADS: 1
-  TASK_QUEUE_ENABLE: 1
-  VLLM_ASCEND_ENABLE_FLASHCOMM1: 1
+  SERVER_PORT: "DEFAULT_PORT"
+  VLLM_USE_MODELSCOPE: "True"
+  PYTORCH_NPU_ALLOC_CONF: "expandable_segments:True"
+  HCCL_OP_EXPANSION_MODE: "AIV"
+  HCCL_BUFFSIZE: "1024"
+  OMP_NUM_THREADS: "1"
+  TASK_QUEUE_ENABLE: "1"
+  VLLM_ASCEND_ENABLE_FLASHCOMM1: "1"
 deployment:
   - envs:
       <<: *env_common
@@ -23,7 +23,6 @@ deployment:
       --enable-expert-parallel
       --seed 1024
       --quantization ascend
-      --served-model-name qwen3.5
       --max-num-seqs 128
       --max-model-len 133000
       --max-num-batched-tokens 16384
@@ -35,6 +34,7 @@ deployment:
       --additional-config '{"enable_cpu_binding":true}'
       --async-scheduling
       --data-parallel-start-rank 0
+      --data-parallel-rpc-port 13389
       --data-parallel-address $LOCAL_IP
   - envs:
       <<: *env_common
@@ -47,7 +47,6 @@ deployment:
       --enable-expert-parallel
       --seed 1024
       --quantization ascend
-      --served-model-name qwen3.5
       --max-num-seqs 128
       --max-model-len 133000
       --max-num-batched-tokens 16384
@@ -58,9 +57,9 @@ deployment:
       --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY"}'
       --additional-config '{"enable_cpu_binding":true}'
       --async-scheduling
-      --data-parallel-start-rank 1
+      --data-parallel-start-rank 2
       --data-parallel-rpc-port 13389
-      --data-parallel-size-local 1
+      --data-parallel-size-local 2
       --headless
       --data-parallel-address $MASTER_IP
 benchmarks:

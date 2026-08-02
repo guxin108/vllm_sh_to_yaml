@@ -27,7 +27,7 @@ def main():
     ap.add_argument("--template", choices=["single", "multi_mix"], default="single")
     ap.add_argument("--num_nodes", type=int, default=1)
     ap.add_argument("--npu_per_node", type=int, default=8)
-
+    ap.add_argument("--tp","--tensor-parallel-size",type=int,default=16)
     args = ap.parse_args()
 
     with open(args.input, encoding="utf-8") as f:
@@ -50,6 +50,7 @@ def main():
         "template": args.template,
         "num_nodes": args.num_nodes,
         "npu_per_node": args.npu_per_node,
+        "tensor_parallel_size": args.tp,
     }
 
     generate_yaml(data, args.output)

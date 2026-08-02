@@ -16,13 +16,17 @@ deployment:
 {% for line in server_cmd.split('\n') %}
       {{ line }}
 {% endfor %}
-{% if i == 0 %}      --data-parallel-start-rank 0
-      --data-parallel-address $LOCAL_IP
-{% else %}      --data-parallel-start-rank {{i}}
+{% if i == 0 %}
+      --data-parallel-start-rank 0
       --data-parallel-rpc-port 13389
-      --data-parallel-size-local 1
+      --data-parallel-address $LOCAL_IP
+{% else %}
+      --data-parallel-start-rank {{ npu_per_node // tensor_parallel_size }}
+      --data-parallel-rpc-port 13389
+      --data-parallel-size-local {{ npu_per_node // tensor_parallel_size }}
       --headless
-      --data-parallel-address $MASTER_IP{% endif %}
+      --data-parallel-address $MASTER_IP
+{% endif %}
 {% endfor %}
 
 benchmarks:

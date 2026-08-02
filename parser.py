@@ -7,7 +7,9 @@ IGNORE_ARGS = {
     "--host",
     "--served-model-name",
 }
-
+IGNORE_ARGS_RAW = {
+    "--served-model-name",
+}
 
 def parse_envs(content):
     envs = {
@@ -70,29 +72,36 @@ def parse_server_cmd(content):
 
     return result
 
-
 def parse_raw_server_cmd(content):
-    """Keep original vllm serve command for multi-node templates."""
     start = content.find("vllm serve")
-    if start < 0:
-        raise RuntimeError("vllm serve command not found")
-
     cmd = content[start:].strip()
-    cmd = cmd.replace("\\\n", "\n")
-
-    tokens = split_command(content)
-    args = tokens[3:]
-    result = []
-    i = 0
-
-    while i < len(args):
-        t = args[i]
-        if t in IGNORE_ARGS:
-            i += 2
+    cmd = cmd.replace("\\\n","\n")
+    lines = cmd.splitlines()
+    output=[]
+    skip=False
+    for line in lines:
+        if skip:
+            skip=False
             continue
-        result.append(t)
-    return cmd,result
-
-
+        if line.strip()=="--served-model-name":
+            skip=True
+            continue
+        if line.startswith("--served-model-name"):
+            continue
+        if line.strip() == "--port":
+            output.append("--port")
+            output.append("$SERVER_PORT")
+            continue
+        output.append(line)
+    return "\n".join(output)
 def parse_name(model):
     return model.split("/")[-1]
+    
+def parse_tp_size(content):
+    m = re.search(
+        r"--tensor-parallel-size\s+(\d+)",
+        content
+    )
+    if not m:
+        return 1
+    return int(m.group(1))
