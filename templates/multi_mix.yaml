@@ -23,7 +23,6 @@ deployment:
 {% else %}
       --data-parallel-start-rank {{ npu_per_node // tensor_parallel_size }}
       --data-parallel-rpc-port 13389
-      --data-parallel-size-local {{ npu_per_node // tensor_parallel_size }}
       --headless
       --data-parallel-address $MASTER_IP
 {% endif %}
