@@ -1,0 +1,41 @@
+test_name: "{{name}}"
+model: "{{model}}"
+num_nodes: {{num_nodes}}
+npu_per_node: {{npu_per_node}}
+
+routing:
+  type: "disaggregated_prefill"
+  groups:
+    prefiller: [{% for x in range(p_nodes) %}{{x}}{{ "," if not loop.last else "" }}{% endfor %}]
+    decoder: [{% for x in range(p_nodes,num_nodes) %}{{x}}{{ "," if not loop.last else "" }}{% endfor %}]
+
+config:
+{% for c in config %}
+  - node_index: {{c.node_index}}
+    port_start: 7100
+    dp_rpc_port: 12321
+    dp_size: {{c.dp_size}}
+    dp_size_local: {{c.dp_size_local}}
+    dp_rank_start: {{c.dp_rank_start}}
+    tp_size: {{c.tp_size}}
+    dp_address: "{{c.dp_address}}"
+{% endfor %}
+
+templates:
+{% for i in range(num_nodes) %}
+  - node_index: {{i}}
+    envs:
+{% if i < p_nodes %}
+{% for k,v in prefill_env.items() %}
+      {{k}}: "{{v}}"
+{% endfor %}
+{% else %}
+{% for k,v in decode_env.items() %}
+      {{k}}: "{{v}}"
+{% endfor %}
+{% endif %}
+    server_cmd_template:
+{% for x in commands[i] %}
+      - {{format_cmd_value(x)}}
+{% endfor %}
+{% endfor %}
